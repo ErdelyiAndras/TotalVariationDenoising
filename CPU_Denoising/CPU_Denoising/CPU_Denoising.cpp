@@ -3,6 +3,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <iostream>
+#include <string>
 #include "Image.h"
 
 int main(int argc, char** argv) {
@@ -15,8 +16,27 @@ int main(int argc, char** argv) {
 
     std::cout << "Image loaded: " << image.getRows() << "x" << image.getCols() << std::endl;
 
+    for (int i = 0; i < image.getRows(); ++i) {
+        for (int j = 0; j < image.getCols(); ++j) {
+            if (i < 200 && j > 200) {
+                image(i, j) = 50;
+            }
+        }
+    }
+
     cv::imshow("Display", image.toMat());
     cv::waitKey(0);
+	
+    std::string path = argv[1];
+    size_t last_dot = path.find_last_of('.');
+    size_t last_slash = path.find_last_of("/\\");
+    if (last_dot == std::string::npos || (last_slash != std::string::npos && last_dot < last_slash)) {
+        path = path + "-denoised";
+    }
+    path = path.substr(0, last_dot) + "-denoised" + path.substr(last_dot);
+
+	cv::imwrite(path, image.toMat());
+
     return 0;
 }
 
