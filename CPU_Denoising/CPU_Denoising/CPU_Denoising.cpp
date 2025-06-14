@@ -6,9 +6,12 @@
 #include "Image.h"
 
 int main(int argc, char** argv) {
-    std::cout << argc << std::endl;
+    if (argc != 2) {
+		std::cerr << "Usage: " << argv[0] << " <image_path>" << std::endl;
+        return -1;
+    }
 
-	Image image("../../images/noisy-img.jpg");
+	Image image(argv[1]);
 
     std::cout << "Image loaded: " << image.getRows() << "x" << image.getCols() << std::endl;
 

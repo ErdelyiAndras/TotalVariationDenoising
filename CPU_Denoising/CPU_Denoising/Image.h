@@ -16,6 +16,7 @@ public:
 	const long double& operator()(int row, int col) const;
 
 	cv::Mat toMat() const;
+
 private:
 	int rows;
 	int cols;
