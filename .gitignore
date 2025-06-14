@@ -1,0 +1,54 @@
+# Visual Studio build files
+*.obj
+*.exe
+*.ilk
+*.pdb
+*.idb
+*.ipch
+*.aps
+*.ncb
+*.sdf
+*.opensdf
+*.tlog
+*.log
+*.user
+*.suo
+*.cache
+*.db
+*.VC.db
+*.VC.opendb
+
+# Build output directories
+[Bb]in/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+ipch/
+*.log
+
+# Visual Studio folders
+.vs/
+*.VC.db
+*.VC.opendb
+
+# Project-specific
+CPU_Denoising/CPU_Denoising/x64/
+CPU_Denoising/CPU_Denoising/Debug/
+CPU_Denoising/CPU_Denoising/Release/
+
+# Backup and temporary files
+*.bak
+*.tmp
+*.swp
+*.swn
+*.swo
+
+# CMake files (if used)
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Ignore OpenCV build folders if present
+opencv/build/
