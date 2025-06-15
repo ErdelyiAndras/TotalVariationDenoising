@@ -13,6 +13,8 @@ public:
 	inline int getRows() const { return rows; }
 	inline int getCols() const { return cols; }
 
+	Image operator=(const Image& other);
+
 	long double& operator()(int row, int col);
 	const long double& operator()(int row, int col) const;
 

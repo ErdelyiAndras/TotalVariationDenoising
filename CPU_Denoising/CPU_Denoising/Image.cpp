@@ -61,6 +61,31 @@ Image::~Image() {
 	}
 }
 
+Image Image::operator=(const Image& other) {
+	if (this == &other) {
+		return *this;
+	}
+
+	if (image) {
+		for (int i = 0; i < rows; ++i) {
+			delete[] image[i];
+		}
+		delete[] image;
+	}
+
+	rows = other.rows;
+	cols = other.cols;
+
+	image = new long double* [rows];
+	for (int i = 0; i < rows; ++i) {
+		image[i] = new long double[cols];
+		for (int j = 0; j < cols; ++j) {
+			image[i][j] = other.image[i][j];
+		}
+	}
+	return *this;
+}
+
 long double& Image::operator()(int row, int col) {
 	return image[row][col];
 }
