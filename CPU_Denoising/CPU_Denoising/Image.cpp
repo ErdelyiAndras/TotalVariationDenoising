@@ -5,7 +5,7 @@ Image::Image(const std::string& path) {
 	if (img.empty()) {
 		throw std::runtime_error("Failed to load image from path: " + path);
 	}
-	
+
 	rows = img.rows;
 	cols = img.cols;
 
@@ -13,19 +13,21 @@ Image::Image(const std::string& path) {
 	for (int i = 0; i < rows; ++i) {
 		image[i] = new long double[cols];
 		for (int j = 0; j < cols; ++j) {
-			image[i][j] = static_cast<long double>(img.at<uchar>(i, j));
+			image[i][j] = static_cast<long double>(img.at<unsigned char>(i, j));
 		}
 	}
 }
 
-Image::Image(const Image& other) : image(other.image) {
+Image::Image(const Image& other) : rows(0), cols(0), image(nullptr) {
 	if (!other.image) {
 		return;
 	}
 	
 	rows = other.rows;
 	cols = other.cols;
+	image = new long double* [rows];
 	for (int i = 0; i < rows; ++i) {
+		image[i] = new long double[cols];
 		for (int j = 0; j < cols; ++j) {
 			image[i][j] = other.image[i][j];
 		}
@@ -54,7 +56,7 @@ cv::Mat Image::toMat() const {
 	cv::Mat mat(rows, cols, CV_8U);
 	for (int i = 0; i < rows; ++i) {
 		for (int j = 0; j < cols; ++j) {
-			mat.at<unsigned char>(i, j) = image[i][j];
+			mat.at<unsigned char>(i, j) = static_cast<unsigned char>(std::max(std::min(image[i][j], 255.0L), 0.0L));
 		}
 	}
 	return mat;

@@ -24,7 +24,9 @@ int main(int argc, char** argv) {
         }
     }
 
-    cv::imshow("Display", image.toMat());
+	cv::Mat displayImage = image.toMat();
+
+    cv::imshow("Display", displayImage);
     cv::waitKey(0);
 	
     std::string path = argv[1];
@@ -35,7 +37,7 @@ int main(int argc, char** argv) {
     }
     path = path.substr(0, last_dot) + "-denoised" + path.substr(last_dot);
 
-	cv::imwrite(path, image.toMat());
+	cv::imwrite(path, displayImage);
 
     return 0;
 }
