@@ -6,6 +6,7 @@
 class Image {
 public:
 	Image(const std::string& path);
+	Image(const cv::Mat& mat);
 	Image(const Image& other);
 	~Image();
 

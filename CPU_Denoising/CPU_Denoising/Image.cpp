@@ -18,6 +18,23 @@ Image::Image(const std::string& path) {
 	}
 }
 
+Image::Image(const cv::Mat& mat) {
+	if (mat.empty() || mat.type() != CV_8U) {
+		throw std::runtime_error("Invalid image matrix provided.");
+	}
+
+	rows = mat.rows;
+	cols = mat.cols;
+
+	image = new long double* [rows];
+	for (int i = 0; i < rows; ++i) {
+		image[i] = new long double[cols];
+		for (int j = 0; j < cols; ++j) {
+			image[i][j] = static_cast<long double>(mat.at<unsigned char>(i, j));
+		}
+	}
+}
+
 Image::Image(const Image& other) : rows(0), cols(0), image(nullptr) {
 	if (!other.image) {
 		return;
