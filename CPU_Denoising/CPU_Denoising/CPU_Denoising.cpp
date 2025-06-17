@@ -49,52 +49,116 @@ Image totalVariationDenoise(const Image& img, long double lambda = 0.125, long d
     return returnImage;
 }
 
-int main(int argc, char** argv) {
-    if (argc != 2) {
-		std::cerr << "Usage: " << argv[0] << " <image_path>" << std::endl;
-        return -1;
-    }
+#include <vector>
 
-	Image image(argv[1]);
+long double tv_norm_and_grad(const Image& img, Image& grad, long double eps = 1e-8) {
+    int rows = img.getRows();
+    int cols = img.getCols();
+    long double loss = 0.0;
 
-    std::cout << "Image loaded: " << image.getRows() << "x" << image.getCols() << std::endl;
+    for (int i = 0; i < rows; ++i)
+        for (int j = 0; j < cols; ++j)
+            grad(i, j) = 0.0;
 
-	std::cout << "Starting denoising." << std::endl;
-	Image denoisedImage = totalVariationDenoise(image, 1.814, 2.023, 50);
-	std::cout << "Denoising completed." << std::endl;
+    for (int i = 0; i < rows - 1; ++i) {
+        for (int j = 0; j < cols - 1; ++j) {
+            long double x_diff = img(i, j) - img(i, j + 1);
+            long double y_diff = img(i, j) - img(i + 1, j);
+            long double grad_mag = std::sqrt(x_diff * x_diff + y_diff * y_diff + eps);
+            loss += grad_mag;
 
-	cv::Mat displayImage = denoisedImage.toMat();
-    
-    cv::imshow("Denoised Image", displayImage);
-    cv::waitKey(0);
+            long double dx = x_diff / grad_mag;
+            long double dy = y_diff / grad_mag;
 
-    int samePixelCount = 0;
-    int below2Count = 0;
-
-    Image diff = image;
-    for (int i = 0; i < image.getRows(); ++i) {
-        for (int j = 0; j < image.getCols(); ++j) {
-            if (denoisedImage(i, j) == image(i, j)) {
-                diff(i, j) = 0.0;
-				samePixelCount++;
-            }
-            else if (std::abs(denoisedImage(i, j) - image(i, j)) < 2.0) {
-                diff(i, j) = 180.0;
-				below2Count++;
-            }
-            else {
-                diff(i, j) = 255.0;
-            }
+            grad(i, j) += dx + dy;
+            grad(i, j + 1) -= dx;
+            grad(i + 1, j) -= dy;
         }
     }
 
-	std::cout << "Same pixels: " << samePixelCount 
-              << ", Below 2 difference: " << below2Count 
-              << ", Rest of the pixels: " << image.getRows() * image.getCols() - samePixelCount - below2Count << std::endl;
+    return loss;
+}
+
+long double l2_norm_and_grad(const Image& img, const Image& orig, Image& grad) {
+    int rows = img.getRows();
+    int cols = img.getCols();
+    long double loss = 0.0;
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            long double diff = img(i, j) - orig(i, j);
+            grad(i, j) = diff;
+            loss += 0.5 * diff * diff;
+        }
+    }
+    return loss;
+}
+
+Image tv_denoise_gradient_descent(const Image& input, long double strength = 0.1, long double step_size = 1.0, int max_iter = 200, long double tol = 1e-3) {
+    int rows = input.getRows();
+    int cols = input.getCols();
+    Image img = input;
+    Image orig = input;
+    Image grad(rows, cols);
+
+    long double prev_loss = 1e20;
+    for (int iter = 0; iter < max_iter; ++iter) {
+        long double tv_loss = 0.0;
+        tv_loss = tv_norm_and_grad(img, grad);
+
+
+        long double l2_loss = 0.0;
+        Image l2_grad = grad;
+        l2_loss = l2_norm_and_grad(img, orig, l2_grad);
+
+
+        long double total_loss = strength * tv_loss + l2_loss;
+        for (int i = 0; i < rows; ++i)
+            for (int j = 0; j < cols; ++j)
+                grad(i, j) = strength * grad(i, j) + l2_grad(i, j);
+
+
+        for (int i = 0; i < rows; ++i)
+            for (int j = 0; j < cols; ++j) {
+                img(i, j) -= step_size * grad(i, j);
+                img(i, j) = std::max(0.0L, std::min(255.0L, img(i, j)));
+            }
+
+        if (std::abs(prev_loss - total_loss) < tol)
+            std::cout << "early stopping at iteration: " << iter << " with loss: " << total_loss << std::endl;
+            break;
+        prev_loss = total_loss;
+    }
+    std::cout << "done" << std::endl;
+    return img;
+}
+
+int main(int argc, char** argv) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <image_path>" << std::endl;
+        return -1;
+    }
+
+    Image image(argv[1]);
+
+    std::cout << "Image loaded: " << image.getRows() << "x" << image.getCols() << std::endl;
+
+    Image denoisedImage = tv_denoise_gradient_descent(image, 2.0, 5.0, 100000, 0.0);
+
+    Image diff(image.getRows(), image.getCols());
+    for (int i = 0; i < image.getRows(); ++i) {
+        for (int j = 0; j < image.getCols(); ++j) {
+            diff(i, j) = std::abs(image(i, j) - denoisedImage(i, j)) < 2.0L ? 0.0L : 255.0L;
+        }
+    }
+
+    cv::Mat displayImage = denoisedImage.toMat();
+
+    cv::imshow("Denoised", displayImage);
+    cv::waitKey(0);
 
     cv::imshow("Difference", diff.toMat());
-	cv::waitKey(0);
-	
+    cv::waitKey(0);
+    
     std::string path = argv[1];
     size_t last_dot = path.find_last_of('.');
     size_t last_slash = path.find_last_of("/\\");
@@ -103,7 +167,7 @@ int main(int argc, char** argv) {
     }
     path = path.substr(0, last_dot) + "-denoised" + path.substr(last_dot);
 
-	cv::imwrite(path, displayImage);
+    cv::imwrite(path, displayImage);
 
     return 0;
 }

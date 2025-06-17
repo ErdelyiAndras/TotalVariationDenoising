@@ -1,5 +1,21 @@
 #include "Image.h"
 
+Image::Image(int rows = 0, int cols = 0) : rows(rows), cols(cols), image(nullptr) {
+	if (rows < 0 || cols < 0) {
+		throw std::invalid_argument("Rows and columns must be non-negative.");
+	}
+	if (rows == 0 || cols == 0) {
+		return;
+	}
+	image = new long double* [rows];
+	for (int i = 0; i < rows; ++i) {
+		image[i] = new long double[cols];
+		for (int j = 0; j < cols; ++j) {
+			image[i][j] = 0.0L; // Initialize with zero
+		}
+	}
+}
+
 Image::Image(const std::string& path) {
 	cv::Mat img = cv::imread(path, cv::IMREAD_GRAYSCALE);
 	if (img.empty()) {
