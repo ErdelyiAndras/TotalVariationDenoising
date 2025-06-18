@@ -5,7 +5,7 @@
 
 class Image {
 public:
-	Image(int rows, int cols);
+	Image(int rows = 0, int cols = 0);
 	Image(const std::string& path);
 	Image(const cv::Mat& mat);
 	Image(const Image& other);

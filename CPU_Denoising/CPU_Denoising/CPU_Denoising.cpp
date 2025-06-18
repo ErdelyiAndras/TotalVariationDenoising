@@ -49,16 +49,15 @@ Image totalVariationDenoise(const Image& img, long double lambda = 0.125, long d
     return returnImage;
 }
 
-#include <vector>
 
 long double tv_norm_and_grad(const Image& img, Image& grad, long double eps = 1e-8) {
     int rows = img.getRows();
     int cols = img.getCols();
-    long double loss = 0.0;
+    long double loss = 0.0L;
 
     for (int i = 0; i < rows; ++i)
         for (int j = 0; j < cols; ++j)
-            grad(i, j) = 0.0;
+            grad(i, j) = 0.0L;
 
     for (int i = 0; i < rows - 1; ++i) {
         for (int j = 0; j < cols - 1; ++j) {
@@ -70,7 +69,7 @@ long double tv_norm_and_grad(const Image& img, Image& grad, long double eps = 1e
             long double dx = x_diff / grad_mag;
             long double dy = y_diff / grad_mag;
 
-            grad(i, j) += dx + dy;
+            grad(i, j) = dx + dy;
             grad(i, j + 1) -= dx;
             grad(i + 1, j) -= dy;
         }
@@ -82,53 +81,77 @@ long double tv_norm_and_grad(const Image& img, Image& grad, long double eps = 1e
 long double l2_norm_and_grad(const Image& img, const Image& orig, Image& grad) {
     int rows = img.getRows();
     int cols = img.getCols();
-    long double loss = 0.0;
+    long double loss = 0.0L;
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
             long double diff = img(i, j) - orig(i, j);
             grad(i, j) = diff;
-            loss += 0.5 * diff * diff;
+            loss += 0.5L * diff * diff;
         }
     }
     return loss;
 }
 
-Image tv_denoise_gradient_descent(const Image& input, long double strength = 0.1, long double step_size = 1.0, int max_iter = 200, long double tol = 1e-3) {
+long double eval_loss_and_grad(const Image& img, const Image& orig, long double strength, Image& grad) {
+	int rows = img.getRows();
+	int cols = img.getCols();
+    Image tv_grad(rows, cols);
+    long double tv_loss = tv_norm_and_grad(img, tv_grad);
+	std::cout << "\tTV Loss: " << tv_loss << std::endl;
+
+    for (int i = 0; i < rows; ++i)
+        for (int j = 0; j < cols; ++j)
+			grad(i, j) = strength * tv_grad(i, j);
+
+	Image l2_grad(rows, cols);
+    long double l2_loss = l2_norm_and_grad(img, orig, l2_grad);
+	std::cout << "\tL2 Loss: " << l2_loss << std::endl;
+    for (int i = 0; i < rows; ++i)
+        for (int j = 0; j < cols; ++j)
+            grad(i, j) += l2_grad(i, j);
+    long double loss = strength * tv_loss + l2_loss;
+	//std::cout << tv_loss << " " << l2_loss << " " << std::endl;
+    //std::cout << "eval_loss_and_grad: loss: " << loss << std::endl;
+	return loss;
+}
+
+Image tv_denoise_gradient_descent(const Image& input, long double strength, long double step_size = 1e-2, long double tol = 3.2e-3) {
     int rows = input.getRows();
     int cols = input.getCols();
+    
     Image img = input;
-    Image orig = input;
-    Image grad(rows, cols);
+    Image orig_img = input;
+    Image momentum(rows, cols);
+    const long double momentum_beta = 0.9L;
+    long double loss_smoothed = 0.0L;
+    const long double loss_smoothing_beta = 0.9L;
+    int counter = 0;
+    while (true) {
+        counter += 1;
+        Image grad(rows, cols);
+        long double loss = eval_loss_and_grad(img, orig_img, strength, grad);
+		std::cout << "\tLoss: " << loss << std::endl;
 
-    long double prev_loss = 1e20;
-    for (int iter = 0; iter < max_iter; ++iter) {
-        long double tv_loss = 0.0;
-        tv_loss = tv_norm_and_grad(img, grad);
+		std::cout << "Iteration: " << counter << ", Loss: " << loss << std::endl;
 
-
-        long double l2_loss = 0.0;
-        Image l2_grad = grad;
-        l2_loss = l2_norm_and_grad(img, orig, l2_grad);
-
-
-        long double total_loss = strength * tv_loss + l2_loss;
-        for (int i = 0; i < rows; ++i)
-            for (int j = 0; j < cols; ++j)
-                grad(i, j) = strength * grad(i, j) + l2_grad(i, j);
-
-
-        for (int i = 0; i < rows; ++i)
-            for (int j = 0; j < cols; ++j) {
-                img(i, j) -= step_size * grad(i, j);
-                img(i, j) = std::max(0.0L, std::min(255.0L, img(i, j)));
-            }
-
-        if (std::abs(prev_loss - total_loss) < tol)
-            std::cout << "early stopping at iteration: " << iter << " with loss: " << total_loss << std::endl;
+        loss_smoothed = loss_smoothed * loss_smoothing_beta + loss * (1.0L - loss_smoothing_beta);
+		long double loss_smoothed_debiased = loss_smoothed / (1.0L - std::pow(loss_smoothing_beta, counter));
+        if (counter > 1 && loss_smoothed_debiased / loss < 1.0L + tol) {
+            std::cout << "Converged after " << counter << " iterations with loss: " << loss_smoothed_debiased << std::endl;
             break;
-        prev_loss = total_loss;
+		}
+        
+        long double step = step_size / (strength + 1);
+        
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                momentum(i, j) *= momentum_beta;
+				momentum(i, j) += grad(i, j) * (1.0L - momentum_beta);
+				img(i, j) -= step / (1 - std::pow(momentum_beta, counter)) * momentum(i, j);
+            }
+        }
     }
-    std::cout << "done" << std::endl;
+
     return img;
 }
 
@@ -142,21 +165,11 @@ int main(int argc, char** argv) {
 
     std::cout << "Image loaded: " << image.getRows() << "x" << image.getCols() << std::endl;
 
-    Image denoisedImage = tv_denoise_gradient_descent(image, 2.0, 5.0, 100000, 0.0);
-
-    Image diff(image.getRows(), image.getCols());
-    for (int i = 0; i < image.getRows(); ++i) {
-        for (int j = 0; j < image.getCols(); ++j) {
-            diff(i, j) = std::abs(image(i, j) - denoisedImage(i, j)) < 2.0L ? 0.0L : 255.0L;
-        }
-    }
+    Image denoisedImage = tv_denoise_gradient_descent(image, 0.1);
 
     cv::Mat displayImage = denoisedImage.toMat();
 
     cv::imshow("Denoised", displayImage);
-    cv::waitKey(0);
-
-    cv::imshow("Difference", diff.toMat());
     cv::waitKey(0);
     
     std::string path = argv[1];

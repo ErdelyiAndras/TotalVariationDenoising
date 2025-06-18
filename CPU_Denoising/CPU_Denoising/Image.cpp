@@ -1,6 +1,6 @@
 #include "Image.h"
 
-Image::Image(int rows = 0, int cols = 0) : rows(rows), cols(cols), image(nullptr) {
+Image::Image(int rows, int cols) : rows(rows), cols(cols), image(nullptr) {
 	if (rows < 0 || cols < 0) {
 		throw std::invalid_argument("Rows and columns must be non-negative.");
 	}
@@ -11,7 +11,7 @@ Image::Image(int rows = 0, int cols = 0) : rows(rows), cols(cols), image(nullptr
 	for (int i = 0; i < rows; ++i) {
 		image[i] = new long double[cols];
 		for (int j = 0; j < cols; ++j) {
-			image[i][j] = 0.0L; // Initialize with zero
+			image[i][j] = 0.0L;
 		}
 	}
 }
@@ -29,7 +29,7 @@ Image::Image(const std::string& path) {
 	for (int i = 0; i < rows; ++i) {
 		image[i] = new long double[cols];
 		for (int j = 0; j < cols; ++j) {
-			image[i][j] = static_cast<long double>(img.at<unsigned char>(i, j));
+			image[i][j] = static_cast<long double>(img.at<unsigned char>(i, j)) / 255.0L;
 		}
 	}
 }
@@ -114,7 +114,7 @@ cv::Mat Image::toMat() const {
 	cv::Mat mat(rows, cols, CV_8U);
 	for (int i = 0; i < rows; ++i) {
 		for (int j = 0; j < cols; ++j) {
-			mat.at<unsigned char>(i, j) = static_cast<unsigned char>(std::max(std::min(image[i][j], 255.0L), 0.0L));
+			mat.at<unsigned char>(i, j) = static_cast<unsigned char>(std::max(std::min(image[i][j] * 255.0L, 255.0L), 0.0L));
 		}
 	}
 	return mat;
