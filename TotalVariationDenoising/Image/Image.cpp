@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include "Image.h"
 
 Image::Image(int rows, int cols) : rows(rows), cols(cols), image(nullptr) {

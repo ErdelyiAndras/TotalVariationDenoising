@@ -1,5 +1,11 @@
 #pragma once
 
+#ifdef IMAGE_EXPORTS
+#define IMAGE_API __declspec(dllexport)
+#else
+#define IMAGE_API __declspec(dllimport)
+#endif
+
 #include <opencv2/opencv.hpp>
 #include <string>
 
@@ -10,7 +16,7 @@
  * Provides constructors for creating images from dimensions, file paths, OpenCV matrices, or by copying another Image.
  * Supports element access, assignment, and conversion to OpenCV Mat format.
  */
-class Image {
+class IMAGE_API Image {
 public:
 	/**
 	 * @brief Constructs an empty image or an image with the given dimensions.

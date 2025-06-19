@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{97c06120-07f6-4c1e-a1a6-b599ccea1d2f}</ProjectGuid>
+    <ProjectGuid>{3a9727c1-f660-4802-b046-92af3032799e}</ProjectGuid>
     <RootNamespace>CPUDenoising</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -93,8 +93,6 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -125,21 +123,22 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);opencv_world4110.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\OpenCV\opencv\build\x64\vc16\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);opencv_world4110.lib;Image.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CPU_Denoising.cpp" />
-    <ClCompile Include="Denoising.cpp" />
-    <ClCompile Include="Image.cpp" />
+    <ClCompile Include="..\..\CPU_Denoising\CPU_Denoising\CPU_Denoising.cpp" />
+    <ClCompile Include="..\..\CPU_Denoising\CPU_Denoising\Denoising.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Denoising.h" />
-    <ClInclude Include="Image.h" />
+    <ClInclude Include="..\..\CPU_Denoising\CPU_Denoising\Denoising.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Image\Image.vcxproj">
+      <Project>{b96b403f-6fcf-4cca-9a3c-ca8b975b7d58}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
