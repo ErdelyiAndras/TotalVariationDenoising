@@ -1,6 +1,3 @@
-// CPU_Denoising.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <string>
@@ -49,25 +46,22 @@ Image totalVariationDenoise(const Image& img, long double lambda = 0.125, long d
     return returnImage;
 }
 
-
+// grad has to be initialized with zeros
 long double tv_norm_and_grad(const Image& img, Image& grad, long double eps = 1e-8) {
-    int rows = img.getRows();
-    int cols = img.getCols();
-    long double loss = 0.0L;
+    const int rows = img.getRows();
+    const int cols = img.getCols();
+    long double tv_norm = 0.0L;
 
-    for (int i = 0; i < rows; ++i)
-        for (int j = 0; j < cols; ++j)
-            grad(i, j) = 0.0L;
-
+	// Compute the total variation norm and gradient
     for (int i = 0; i < rows - 1; ++i) {
         for (int j = 0; j < cols - 1; ++j) {
-            long double x_diff = img(i, j) - img(i, j + 1);
-            long double y_diff = img(i, j) - img(i + 1, j);
-            long double grad_mag = std::sqrt(x_diff * x_diff + y_diff * y_diff + eps);
-            loss += grad_mag;
+            const long double x_diff = img(i, j) - img(i, j + 1);
+            const long double y_diff = img(i, j) - img(i + 1, j);
+            const long double grad_mag = std::sqrt(x_diff * x_diff + y_diff * y_diff + eps);
+            tv_norm += grad_mag;
 
-            long double dx = x_diff / grad_mag;
-            long double dy = y_diff / grad_mag;
+            const long double dx = x_diff / grad_mag;
+            const long double dy = y_diff / grad_mag;
 
             grad(i, j) = dx + dy;
             grad(i, j + 1) -= dx;
@@ -75,74 +69,79 @@ long double tv_norm_and_grad(const Image& img, Image& grad, long double eps = 1e
         }
     }
 
-    return loss;
+    return tv_norm;
 }
 
 long double l2_norm_and_grad(const Image& img, const Image& orig, Image& grad) {
-    int rows = img.getRows();
-    int cols = img.getCols();
-    long double loss = 0.0L;
+    const int rows = img.getRows();
+    const int cols = img.getCols();
+    long double l2_norm = 0.0L;
+
+    // Compute the L2 norm and gradient of the image and the original image
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
-            long double diff = img(i, j) - orig(i, j);
+            const long double diff = img(i, j) - orig(i, j);
             grad(i, j) = diff;
-            loss += 0.5L * diff * diff;
+            l2_norm += diff * diff;
         }
     }
-    return loss;
+    return 0.5L * l2_norm;
 }
 
 long double eval_loss_and_grad(const Image& img, const Image& orig, long double strength, Image& grad) {
-	int rows = img.getRows();
-	int cols = img.getCols();
+	const int rows = img.getRows();
+	const int cols = img.getCols();
     Image tv_grad(rows, cols);
-    long double tv_loss = tv_norm_and_grad(img, tv_grad);
-	std::cout << "\tTV Loss: " << tv_loss << std::endl;
+    const long double tv_norm = tv_norm_and_grad(img, tv_grad);
 
     for (int i = 0; i < rows; ++i)
         for (int j = 0; j < cols; ++j)
 			grad(i, j) = strength * tv_grad(i, j);
 
 	Image l2_grad(rows, cols);
-    long double l2_loss = l2_norm_and_grad(img, orig, l2_grad);
-	std::cout << "\tL2 Loss: " << l2_loss << std::endl;
+    const long double l2_norm = l2_norm_and_grad(img, orig, l2_grad);
+    // Compute the combined weighted gradient
     for (int i = 0; i < rows; ++i)
         for (int j = 0; j < cols; ++j)
             grad(i, j) += l2_grad(i, j);
-    long double loss = strength * tv_loss + l2_loss;
-	//std::cout << tv_loss << " " << l2_loss << " " << std::endl;
-    //std::cout << "eval_loss_and_grad: loss: " << loss << std::endl;
-	return loss;
+
+    // Compute the combined weighted loss
+	return strength * tv_norm + l2_norm;
 }
 
 Image tv_denoise_gradient_descent(const Image& input, long double strength, long double step_size = 1e-2, long double tol = 3.2e-3) {
-    int rows = input.getRows();
-    int cols = input.getCols();
+    const int rows = input.getRows();
+    const int cols = input.getCols();
     
-    Image img = input;
-    Image orig_img = input;
     Image momentum(rows, cols);
+    Image img = input;
+    const Image orig_img = input;
+
     const long double momentum_beta = 0.9L;
-    long double loss_smoothed = 0.0L;
     const long double loss_smoothing_beta = 0.9L;
-    int counter = 0;
+    long double loss_smoothed = 0.0L;
+
+	const long double step = step_size / (strength + 1);
+
+    int counter = 1;
     while (true) {
-        counter += 1;
         Image grad(rows, cols);
         long double loss = eval_loss_and_grad(img, orig_img, strength, grad);
-		std::cout << "\tLoss: " << loss << std::endl;
 
 		std::cout << "Iteration: " << counter << ", Loss: " << loss << std::endl;
 
+		// Smooth the loss using exponential moving average
+		// Smoothed loss is needed for more stable convergence
         loss_smoothed = loss_smoothed * loss_smoothing_beta + loss * (1.0L - loss_smoothing_beta);
+
+        // Debias the smoothed loss to correct the bias introduced by the zero initialization
 		long double loss_smoothed_debiased = loss_smoothed / (1.0L - std::pow(loss_smoothing_beta, counter));
         if (counter > 1 && loss_smoothed_debiased / loss < 1.0L + tol) {
             std::cout << "Converged after " << counter << " iterations with loss: " << loss_smoothed_debiased << std::endl;
             break;
 		}
         
-        long double step = step_size / (strength + 1);
-        
+		// Momentum keeps track of the previous gradients to stabilize and speed up convergence
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < cols; ++j) {
                 momentum(i, j) *= momentum_beta;
@@ -150,6 +149,8 @@ Image tv_denoise_gradient_descent(const Image& input, long double strength, long
 				img(i, j) -= step / (1 - std::pow(momentum_beta, counter)) * momentum(i, j);
             }
         }
+
+        ++counter;
     }
 
     return img;
@@ -163,9 +164,7 @@ int main(int argc, char** argv) {
 
     Image image(argv[1]);
 
-    std::cout << "Image loaded: " << image.getRows() << "x" << image.getCols() << std::endl;
-
-    Image denoisedImage = tv_denoise_gradient_descent(image, 0.1);
+    Image denoisedImage = tv_denoise_gradient_descent(image, 0.1L);
 
     cv::Mat displayImage = denoisedImage.toMat();
 
@@ -184,15 +183,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
