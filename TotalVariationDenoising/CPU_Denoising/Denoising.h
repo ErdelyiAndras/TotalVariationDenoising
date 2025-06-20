@@ -45,4 +45,3 @@ long double eval_loss_and_grad(const Image& img, const Image& orig, long double 
  * @return The denoised image.
  */
 Image tv_denoise_gradient_descent(const Image& input, long double strength, long double step_size = 1e-2, long double tol = 3.2e-3);
-#pragma once
