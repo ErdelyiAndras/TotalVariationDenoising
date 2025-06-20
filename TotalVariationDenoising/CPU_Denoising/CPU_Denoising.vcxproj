@@ -129,11 +129,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\CPU_Denoising\CPU_Denoising\CPU_Denoising.cpp" />
-    <ClCompile Include="..\..\CPU_Denoising\CPU_Denoising\Denoising.cpp" />
+    <ClCompile Include="CPU_Denoising.cpp" />
+    <ClCompile Include="Denoising.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\CPU_Denoising\CPU_Denoising\Denoising.h" />
+    <ClInclude Include="Denoising.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Image\Image.vcxproj">

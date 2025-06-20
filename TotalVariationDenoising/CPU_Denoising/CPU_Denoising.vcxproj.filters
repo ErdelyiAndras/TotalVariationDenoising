@@ -15,15 +15,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\CPU_Denoising\CPU_Denoising\CPU_Denoising.cpp">
+    <ClCompile Include="Denoising.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\CPU_Denoising\CPU_Denoising\Denoising.cpp">
+    <ClCompile Include="CPU_Denoising.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\CPU_Denoising\CPU_Denoising\Denoising.h">
+    <ClInclude Include="Denoising.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
