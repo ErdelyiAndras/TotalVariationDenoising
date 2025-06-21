@@ -9,11 +9,10 @@ Image::Image(int rows, int cols) : rows(rows), cols(cols), image(nullptr) {
 	if (rows == 0 || cols == 0) {
 		return;
 	}
-	image = new long double* [rows];
+	image = new long double[rows * cols];
 	for (int i = 0; i < rows; ++i) {
-		image[i] = new long double[cols];
 		for (int j = 0; j < cols; ++j) {
-			image[i][j] = 0.0L;
+			this->operator()(i, j) = 0.0L;
 		}
 	}
 }
@@ -27,11 +26,10 @@ Image::Image(const std::string& path) {
 	rows = img.rows;
 	cols = img.cols;
 
-	image = new long double* [rows];
+	image = new long double[rows * cols];
 	for (int i = 0; i < rows; ++i) {
-		image[i] = new long double[cols];
 		for (int j = 0; j < cols; ++j) {
-			image[i][j] = static_cast<long double>(img.at<unsigned char>(i, j)) / 255.0L;
+			this->operator()(i, j) = static_cast<long double>(img.at<unsigned char>(i, j)) / 255.0L;
 		}
 	}
 }
@@ -44,11 +42,10 @@ Image::Image(const cv::Mat& mat) {
 	rows = mat.rows;
 	cols = mat.cols;
 
-	image = new long double* [rows];
+	image = new long double[rows * cols];
 	for (int i = 0; i < rows; ++i) {
-		image[i] = new long double[cols];
 		for (int j = 0; j < cols; ++j) {
-			image[i][j] = static_cast<long double>(mat.at<unsigned char>(i, j));
+			this->operator()(i, j) = static_cast<long double>(mat.at<unsigned char>(i, j));
 		}
 	}
 }
@@ -60,20 +57,16 @@ Image::Image(const Image& other) : rows(0), cols(0), image(nullptr) {
 	
 	rows = other.rows;
 	cols = other.cols;
-	image = new long double* [rows];
+	image = new long double[rows * cols];
 	for (int i = 0; i < rows; ++i) {
-		image[i] = new long double[cols];
 		for (int j = 0; j < cols; ++j) {
-			image[i][j] = other.image[i][j];
+			this->operator()(i, j) = other.image[i * cols + j];
 		}
 	}
 }
 
 Image::~Image() {
 	if (image) {
-		for (int i = 0; i < rows; ++i) {
-			delete[] image[i];
-		}
 		delete[] image;
 		image = nullptr;
 	}
@@ -85,38 +78,35 @@ Image Image::operator=(const Image& other) {
 	}
 
 	if (image) {
-		for (int i = 0; i < rows; ++i) {
-			delete[] image[i];
-		}
 		delete[] image;
+		image = nullptr;
 	}
 
 	rows = other.rows;
 	cols = other.cols;
 
-	image = new long double* [rows];
+	image = new long double[rows * cols];
 	for (int i = 0; i < rows; ++i) {
-		image[i] = new long double[cols];
 		for (int j = 0; j < cols; ++j) {
-			image[i][j] = other.image[i][j];
+			this->operator()(i, j) = other.image[i * cols + j];
 		}
 	}
 	return *this;
 }
 
 long double& Image::operator()(int row, int col) {
-	return image[row][col];
+	return image[row * cols + col];
 }
 
 const long double& Image::operator()(int row, int col) const {
-	return image[row][col];
+	return image[row * cols + col];
 }
 
 cv::Mat Image::toMat() const {
 	cv::Mat mat(rows, cols, CV_8U);
 	for (int i = 0; i < rows; ++i) {
 		for (int j = 0; j < cols; ++j) {
-			mat.at<unsigned char>(i, j) = static_cast<unsigned char>(std::max(std::min(image[i][j] * 255.0L, 255.0L), 0.0L));
+			mat.at<unsigned char>(i, j) = static_cast<unsigned char>(std::max(std::min(this->operator()(i, j) * 255.0L, 255.0L), 0.0L));
 		}
 	}
 	return mat;

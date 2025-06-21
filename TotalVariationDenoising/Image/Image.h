@@ -84,13 +84,36 @@ public:
 	const long double& operator()(int row, int col) const;
 
 	/**
-	 * @brief Converts the image to an OpenCV cv::Mat object. Can be used to display or save the image, using OpenCV functions.
+	 * @brief Converts the image to an OpenCV cv::Mat object. 
+	 *
+	 * Can be used to display or save the image, using OpenCV functions.
+	 *
 	 * @return cv::Mat representation of the image.
 	 */
 	cv::Mat toMat() const;
 
+	/**
+	 * @brief Returns a pointer to the underlying memory of the flattened image. 
+	 * 
+	 * The data is stored in row-major order as a contiguous 1D array of size rows * cols.
+	 * This pointer can be used for efficient data transfer to GPU memory.
+	 * 
+	 * @return Pointer to the first element of the image data buffer.
+	 */
+	inline long double* data() { return image; }
+
+	/**
+	 * @brief Returns a const pointer to the underlying memory of the flattened image.
+	 *
+	 * The data is stored in row-major order as a contiguous 1D array of size rows * cols.
+	 * This pointer can be used for efficient data transfer to GPU memory.
+	 *
+	 * @return Const pointer to the first element of the image data buffer.
+	 */
+	inline const long double* data() const { return image; }
+
 private:
 	int rows;
 	int cols;
-	long double** image;
+	long double* image;
 };
