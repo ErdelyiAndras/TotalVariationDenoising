@@ -10,7 +10,7 @@
  * @param eps Small value to avoid division by zero (default: 1e-8).
  * @return The total variation norm as a float.
  */
-float tv_norm_and_grad(const Image& img, Image& grad, float eps = 1e-8);
+float tv_norm_and_grad(const Image& img, Image& grad, float eps = 1e-8f);
 
 /**
  * @brief Computes the L2 norm (squared error) between two images and its gradient.
@@ -44,4 +44,4 @@ float eval_loss_and_grad(const Image& img, const Image& orig, float strength, Im
  * @param tol Tolerance for convergence (default: 3.2e-3).
  * @return The denoised image.
  */
-Image tv_denoise_gradient_descent(const Image& input, float strength, float step_size = 1e-2, float tol = 3.2e-3);
+Image tv_denoise_gradient_descent(const Image& input, float strength, float step_size = 1e-2f, float tol = 3.2e-3f);

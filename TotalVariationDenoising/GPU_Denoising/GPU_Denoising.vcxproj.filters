@@ -18,10 +18,18 @@
     <ClCompile Include="GPU_Denoising.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Denoising.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Denoising.cl">
       <Filter>Source Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Denoising.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
