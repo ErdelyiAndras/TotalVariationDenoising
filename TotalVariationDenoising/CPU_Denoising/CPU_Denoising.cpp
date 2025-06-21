@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
 
     Image image(argv[1]);
 
-    Image denoisedImage = tv_denoise_gradient_descent(image, 0.1L);
+    Image denoisedImage = tv_denoise_gradient_descent(image, 0.1f);
 
     cv::Mat displayImage = denoisedImage.toMat();
 

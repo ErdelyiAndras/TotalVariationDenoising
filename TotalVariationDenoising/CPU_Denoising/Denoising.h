@@ -8,9 +8,9 @@
  * @param img Input image.
  * @param grad Output image to store the gradient of the TV norm (modified in-place). All values has to be set to zero before calling this function.
  * @param eps Small value to avoid division by zero (default: 1e-8).
- * @return The total variation norm as a long double.
+ * @return The total variation norm as a float.
  */
-long double tv_norm_and_grad(const Image& img, Image& grad, long double eps = 1e-8);
+float tv_norm_and_grad(const Image& img, Image& grad, float eps = 1e-8);
 
 /**
  * @brief Computes the L2 norm (squared error) between two images and its gradient.
@@ -18,9 +18,9 @@ long double tv_norm_and_grad(const Image& img, Image& grad, long double eps = 1e
  * @param img Denoised image (input).
  * @param orig Original image (reference).
  * @param grad Output image to store the gradient of the L2 loss (modified in-place).
- * @return The L2 norm as a long double.
+ * @return The L2 norm as a float.
  */
-long double l2_norm_and_grad(const Image& img, const Image& orig, Image& grad);
+float l2_norm_and_grad(const Image& img, const Image& orig, Image& grad);
 
 /**
  * @brief Computes the total loss (TV + L2) and its gradient for an image.
@@ -29,9 +29,9 @@ long double l2_norm_and_grad(const Image& img, const Image& orig, Image& grad);
  * @param orig Original image (reference).
  * @param strength Weight for the TV loss term.
  * @param grad Output image to store the combined gradient (modified in-place).
- * @return The total loss as a long double.
+ * @return The total loss as a float.
  */
-long double eval_loss_and_grad(const Image& img, const Image& orig, long double strength, Image& grad);
+float eval_loss_and_grad(const Image& img, const Image& orig, float strength, Image& grad);
 
 /**
  * @brief Performs total variation denoising using gradient descent.
@@ -44,4 +44,4 @@ long double eval_loss_and_grad(const Image& img, const Image& orig, long double 
  * @param tol Tolerance for convergence (default: 3.2e-3).
  * @return The denoised image.
  */
-Image tv_denoise_gradient_descent(const Image& input, long double strength, long double step_size = 1e-2, long double tol = 3.2e-3);
+Image tv_denoise_gradient_descent(const Image& input, float strength, float step_size = 1e-2, float tol = 3.2e-3);

@@ -11,7 +11,7 @@
 
 /**
  * @class Image
- * @brief A simple image class for handling 2D, single-channel (grayscale) images with long double precision.
+ * @brief A simple image class for handling 2D, single-channel (grayscale) images with float precision.
  *
  * Provides constructors for creating images from dimensions, file paths, OpenCV matrices, or by copying another Image.
  * Supports element access, assignment, and conversion to OpenCV Mat format.
@@ -73,7 +73,7 @@ public:
 	 * @param col Column index.
 	 * @return Reference to the pixel value at (row, col).
 	 */
-	long double& operator()(int row, int col);
+	float& operator()(int row, int col);
 
 	/**
 	 * @brief Accesses a pixel value (const).
@@ -81,7 +81,7 @@ public:
 	 * @param col Column index.
 	 * @return Const reference to the pixel value at (row, col).
 	 */
-	const long double& operator()(int row, int col) const;
+	const float& operator()(int row, int col) const;
 
 	/**
 	 * @brief Converts the image to an OpenCV cv::Mat object. 
@@ -100,7 +100,7 @@ public:
 	 * 
 	 * @return Pointer to the first element of the image data buffer.
 	 */
-	inline long double* data() { return image; }
+	inline float* data() { return image; }
 
 	/**
 	 * @brief Returns a const pointer to the underlying memory of the flattened image.
@@ -110,10 +110,10 @@ public:
 	 *
 	 * @return Const pointer to the first element of the image data buffer.
 	 */
-	inline const long double* data() const { return image; }
+	inline const float* data() const { return image; }
 
 private:
 	int rows;
 	int cols;
-	long double* image;
+	float* image;
 };
