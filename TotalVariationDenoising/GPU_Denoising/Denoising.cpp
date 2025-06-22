@@ -210,7 +210,7 @@ float eval_loss_and_grad(
 
 void eval_momentum(
 	cl::Context& context, cl::CommandQueue& queue, cl::Program& program,
-	float* momentum, const float* grad, float strength, int img_size
+	float* momentum, const float* grad, float momentum_beta, int img_size
 ) {
 	cl::Kernel momentum_kernel(program, "eval_momentum");
 
@@ -224,7 +224,7 @@ void eval_momentum(
 
 	momentum_kernel.setArg(0, momentum_buffer);
 	momentum_kernel.setArg(1, grad_buffer);
-	momentum_kernel.setArg(2, strength);
+	momentum_kernel.setArg(2, momentum_beta);
 
 	queue.enqueueNDRangeKernel(momentum_kernel, cl::NullRange, img_size, cl::NullRange);
 
@@ -289,7 +289,7 @@ Image tv_denoise_gradient_descent(
 			break;
 		}
 
-		eval_momentum(context, queue, program, momentum, grad, strength, img_size);
+		eval_momentum(context, queue, program, momentum, grad, momentum_beta, img_size);
 		update_img(context, queue, program, img.data(), momentum, img_size, step, momentum_beta, counter);
 
 		++counter;
