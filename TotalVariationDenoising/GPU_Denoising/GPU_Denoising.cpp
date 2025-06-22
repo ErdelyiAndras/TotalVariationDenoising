@@ -41,15 +41,22 @@ int main(int argc, char** argv)
 		return -1;
 	}
 	
-	float* grad = new float[img_size];
-	float tv_norm = tv_norm_and_grad(context, queue, program, image, grad);
+	Image denoisedImage = tv_denoise_gradient_descent(context, queue, program, image, 0.1f);
 
-	std::cout << tv_norm << std::endl;
-	std::cout << sum<float>(context, queue, program, grad, img_size) << std::endl;
+	cv::Mat displayImage = denoisedImage.toMat();
 
-	float* l2_grad = new float[img_size];
-	float l2_norm = l2_norm_and_grad(context, queue, program, image, image, l2_grad);
-	
-	std::cout << l2_norm << std::endl;
-	std::cout << sum<float>(context, queue, program, l2_grad, img_size) << std::endl;
+	cv::imshow("Denoised", displayImage);
+	cv::waitKey(0);
+
+	std::string path = argv[1];
+	size_t last_dot = path.find_last_of('.');
+	size_t last_slash = path.find_last_of("/\\");
+	if (last_dot == std::string::npos || (last_slash != std::string::npos && last_dot < last_slash)) {
+		path = path + "-denoised-gpu";
+	}
+	path = path.substr(0, last_dot) + "-denoised-gpu" + path.substr(last_dot);
+
+	cv::imwrite(path, displayImage);
+
+	return 0;
 }

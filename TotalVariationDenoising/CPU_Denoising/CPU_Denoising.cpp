@@ -23,9 +23,9 @@ int main(int argc, char** argv) {
     size_t last_dot = path.find_last_of('.');
     size_t last_slash = path.find_last_of("/\\");
     if (last_dot == std::string::npos || (last_slash != std::string::npos && last_dot < last_slash)) {
-        path = path + "-denoised";
+        path = path + "-denoised-cpu";
     }
-    path = path.substr(0, last_dot) + "-denoised" + path.substr(last_dot);
+    path = path.substr(0, last_dot) + "-denoised-cpu" + path.substr(last_dot);
 
     cv::imwrite(path, displayImage);
 

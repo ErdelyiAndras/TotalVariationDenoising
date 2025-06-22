@@ -12,8 +12,7 @@ __kernel void sum_float(__global float* data, int offset)
     data[idx] += data[right_idx];
 }
 
-__kernel void tv_norm_mtx_and_dx_dy
-(
+__kernel void tv_norm_mtx_and_dx_dy(
     __global const float* img,
     __global float* tv_norm_mtx,
     __global float* dx_mtx,
@@ -109,8 +108,7 @@ __kernel void grad_from_dx_dy_step3(
     grad[idx_down] -= dy[idx];
 }
 
-__kernel void l2_norm_mtx_and_grad
-(
+__kernel void l2_norm_mtx_and_grad(
     __global const float* img,
     __global const float* orig,
     __global float* l2_norm_mtx,
@@ -127,3 +125,33 @@ __kernel void l2_norm_mtx_and_grad
     l2_norm_mtx[idx] = diff * diff;
 }
 
+__kernel void eval_loss_and_grad(
+    __global float* grad,
+    __global const float* tv_or_l2_grad,
+    float strength
+) {
+    int idx = get_global_id(0);
+    grad[idx] += strength * tv_or_l2_grad[idx];
+}
+
+__kernel void eval_momentum(
+    __global float* momentum,
+    __global const float* grad,
+    float momentum_beta
+) {
+    int idx = get_global_id(0);
+    momentum[idx] *= momentum_beta;
+    momentum[idx] += grad[idx] * (1.0f - momentum_beta);
+}
+
+__kernel void update_img(
+    __global float* img,
+    __global const float* momentum,
+    float step,
+    float momentum_beta,
+    int counter
+) {
+    int idx = get_global_id(0);
+    float bias_correction = 1.0f - pow(momentum_beta, (float)counter);
+    img[idx] -= step / bias_correction * momentum[idx];
+}

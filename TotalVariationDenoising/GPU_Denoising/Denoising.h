@@ -51,6 +51,7 @@ T sum(cl::Context& context, cl::CommandQueue& queue, cl::Program& program, const
 	return result;
 }
 
+
 void tv_norm_mtx_and_dx_dy_mtx(
 	cl::Context& context, cl::CommandQueue& queue, cl::Program& program, 
 	const Image& image, float* tv_norm_mtx, float* dx_mtx, float* dy_mtx, float eps
@@ -66,6 +67,7 @@ float tv_norm_and_grad(
 	const Image& image, float* grad, float eps = 1e-8f
 );
 
+
 void l2_norm_mtx_and_grad(
 	cl::Context& context, cl::CommandQueue& queue, cl::Program& program,
 	const Image& img, const Image& orig, float* l2_norm_mtx, float* grad
@@ -74,4 +76,26 @@ void l2_norm_mtx_and_grad(
 float l2_norm_and_grad(
 	cl::Context& context, cl::CommandQueue& queue, cl::Program& program,
 	const Image& img, const Image& orig, float* grad
+);
+
+
+float eval_loss_and_grad(
+	cl::Context& context, cl::CommandQueue& queue, cl::Program& program,
+	const Image& img, const Image& orig, float strength, float* grad
+);
+
+
+void eval_momentum(
+	cl::Context& context, cl::CommandQueue& queue, cl::Program& program,
+	float* momentum, const float* grad, float strength, int img_size
+);
+
+void update_img(
+	cl::Context& context, cl::CommandQueue& queue, cl::Program& program,
+	float* img, const float* momentum, int img_size, float step, float momentum_beta, int counter
+);
+
+Image tv_denoise_gradient_descent(
+	cl::Context& context, cl::CommandQueue& queue, cl::Program& program,
+	const Image& input, float strength, float step_size = 1e-2f, float tol = 3.2e-3f
 );

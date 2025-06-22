@@ -103,7 +103,7 @@ Image tv_denoise_gradient_descent(const Image& input, float strength, float step
             for (int j = 0; j < cols; ++j) {
                 momentum(i, j) *= momentum_beta;
                 momentum(i, j) += grad(i, j) * (1.0f - momentum_beta);
-                img(i, j) -= step / (1 - static_cast<float>(std::pow(momentum_beta, counter))) * momentum(i, j);
+                img(i, j) -= step / (1.0f - static_cast<float>(std::pow(momentum_beta, counter))) * momentum(i, j);
             }
         }
 
