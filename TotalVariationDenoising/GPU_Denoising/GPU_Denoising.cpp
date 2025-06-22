@@ -40,14 +40,16 @@ int main(int argc, char** argv)
 		std::cerr << "Build Log:\t " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]) << std::endl;
 		return -1;
 	}
-
-
-	float* tv_norm_mtx = new float[img_size];
-	float* dx_mtx = new float[img_size];
-	float* dy_mtx = new float[img_size];
-
-	tv_norm_mtx_and_dx_dy_mtx(context, queue, program, image, tv_norm_mtx, dx_mtx, dy_mtx);
-	float tv_norm = sum<float>(context, queue, program, tv_norm_mtx, img_size);
+	
+	float* grad = new float[img_size];
+	float tv_norm = tv_norm_and_grad(context, queue, program, image, grad);
 
 	std::cout << tv_norm << std::endl;
+	std::cout << sum<float>(context, queue, program, grad, img_size) << std::endl;
+
+	float* l2_grad = new float[img_size];
+	float l2_norm = l2_norm_and_grad(context, queue, program, image, image, l2_grad);
+	
+	std::cout << l2_norm << std::endl;
+	std::cout << sum<float>(context, queue, program, l2_grad, img_size) << std::endl;
 }

@@ -17,36 +17,32 @@ template <>
 cl::Kernel init_sum_kernel<float>(cl::Program& program);
 
 template <typename T>
-T sum(cl::Context& context, cl::CommandQueue& queue, cl::Program& program, T* array, int size) {
+T sum(cl::Context& context, cl::CommandQueue& queue, cl::Program& program, const T* array, int size) {
 	if (size == 0) {
 		return static_cast<T>(0);
 	}
 
 	cl::Kernel kernel = init_sum_kernel<T>(program);
 
-	cl::Buffer array_buffer(context, CL_MEM_READ_WRITE, size * sizeof(T));
-	queue.enqueueWriteBuffer(array_buffer, CL_TRUE, 0, size * sizeof(T), array);
-	queue.finish();
-
-	kernel.setArg(0, array_buffer);
-
 	int extended_size = 1;
 	while (extended_size < size) {
 		extended_size *= 2;
 	}
 
+	std::vector<T> padded_array(extended_size, static_cast<T>(0));
+	std::copy(array, array + size, padded_array.begin());
+
+	cl::Buffer array_buffer(context, CL_MEM_READ_WRITE, extended_size * sizeof(T));
+	queue.enqueueWriteBuffer(array_buffer, CL_TRUE, 0, extended_size * sizeof(T), padded_array.data());
+	queue.finish();
+
+	kernel.setArg(0, array_buffer);
 
 	for (int offset = extended_size / 2; offset > 0; offset >>= 1) {
 		kernel.setArg(1, offset);
 
-		if (offset == extended_size / 2) {
-			kernel.setArg(2, size);
-		}
-		else {
-			kernel.setArg(2, offset * 2);
-		}
-
 		queue.enqueueNDRangeKernel(kernel, cl::NullRange, offset, cl::NullRange);
+		queue.finish();
 	}
 
 	T result;
@@ -56,7 +52,26 @@ T sum(cl::Context& context, cl::CommandQueue& queue, cl::Program& program, T* ar
 }
 
 void tv_norm_mtx_and_dx_dy_mtx(
-	cl::Context& context, cl::CommandQueue& queue, cl::Program& program, const Image& image,
-	float* tv_norm_mtx, float* dx_mtx, float* dy_mtx
+	cl::Context& context, cl::CommandQueue& queue, cl::Program& program, 
+	const Image& image, float* tv_norm_mtx, float* dx_mtx, float* dy_mtx, float eps
 );
 
+void grad_from_dx_dy_mtxs(
+	cl::Context& context, cl::CommandQueue& queue, cl::Program& program,
+	const float* dx_mtx, const float* dy_mtx, float* grad, int rows, int cols
+);
+
+float tv_norm_and_grad(
+	cl::Context& context, cl::CommandQueue& queue, cl::Program& program, 
+	const Image& image, float* grad, float eps = 1e-8f
+);
+
+void l2_norm_mtx_and_grad(
+	cl::Context& context, cl::CommandQueue& queue, cl::Program& program,
+	const Image& img, const Image& orig, float* l2_norm_mtx, float* grad
+);
+
+float l2_norm_and_grad(
+	cl::Context& context, cl::CommandQueue& queue, cl::Program& program,
+	const Image& img, const Image& orig, float* grad
+);

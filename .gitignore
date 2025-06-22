@@ -32,6 +32,9 @@ ipch/
 *.VC.db
 *.VC.opendb
 
+# Visual Studio Code folders
+.vscode/
+
 # Project-specific
 CPU_Denoising/CPU_Denoising/x64/
 CPU_Denoising/CPU_Denoising/Debug/

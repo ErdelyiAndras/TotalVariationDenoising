@@ -20,7 +20,7 @@ float tv_norm_and_grad(const Image& img, Image& grad, float eps) {
             const float dx = x_diff / grad_mag;
             const float dy = y_diff / grad_mag;
 
-            grad(i, j) = dx + dy;
+            grad(i, j) += dx + dy;
             grad(i, j + 1) -= dx;
             grad(i + 1, j) -= dy;
         }
