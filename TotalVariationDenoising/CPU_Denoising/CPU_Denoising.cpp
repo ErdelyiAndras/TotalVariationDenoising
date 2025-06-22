@@ -1,6 +1,7 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <string>
+#include <chrono>
 #include "../Image/Image.h"
 #include "Denoising.h"
 
@@ -12,7 +13,14 @@ int main(int argc, char** argv) {
 
     Image image(argv[1]);
 
+    auto start = std::chrono::high_resolution_clock::now();
+
     Image denoisedImage = tv_denoise_gradient_descent(image, 0.1f);
+
+    auto end = std::chrono::high_resolution_clock::now();
+
+    std::chrono::duration<float> elapsed = end - start;
+    std::cout << "CPU_Denoising took: " << elapsed.count() << " seconds" << std::endl;
 
     cv::Mat displayImage = denoisedImage.toMat();
 

@@ -258,7 +258,7 @@ void update_img(
 
 Image tv_denoise_gradient_descent(
 	cl::Context& context, cl::CommandQueue& queue, cl::Program& program,
-	const Image& input, float strength, float step_size, float tol
+	const Image& input, float strength, float step_size, float tol, bool suppress_log
 ) {
 	const int img_size = input.getRows() * input.getCols();
 
@@ -279,13 +279,17 @@ Image tv_denoise_gradient_descent(
 		float* grad = new float[img_size];
 		float loss = eval_loss_and_grad(context, queue, program, img, orig_img, strength, grad);
 
-		std::cout << "Iteration: " << counter << ", Loss: " << loss << std::endl;
+		if (!suppress_log) {
+			std::cout << "Iteration: " << counter << ", Loss: " << loss << std::endl;
+		}
 
 		loss_smoothed = loss_smoothed * loss_smoothing_beta + loss * (1.0f - loss_smoothing_beta);
 
 		float loss_smoothed_debiased = loss_smoothed / (1.0f - static_cast<float>(std::pow(loss_smoothing_beta, counter)));
 		if (counter > 1 && loss_smoothed_debiased / loss < 1.0f + tol) {
-			std::cout << "Converged after " << counter << " iterations with loss: " << loss_smoothed_debiased << std::endl;
+			if (!suppress_log) {
+				std::cout << "Converged after " << counter << " iterations with loss: " << loss_smoothed_debiased << std::endl;
+			}
 			break;
 		}
 
@@ -293,6 +297,8 @@ Image tv_denoise_gradient_descent(
 		update_img(context, queue, program, img.data(), momentum, img_size, step, momentum_beta, counter);
 
 		++counter;
+
+		delete[] grad;
 	}
 
 	return img;

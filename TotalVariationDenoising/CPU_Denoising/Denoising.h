@@ -44,4 +44,4 @@ float eval_loss_and_grad(const Image& img, const Image& orig, float strength, Im
  * @param tol Tolerance for convergence (default: 3.2e-3).
  * @return The denoised image.
  */
-Image tv_denoise_gradient_descent(const Image& input, float strength, float step_size = 1e-2f, float tol = 3.2e-3f);
+Image tv_denoise_gradient_descent(const Image& input, float strength, float step_size = 1e-2f, float tol = 3.2e-3f, bool suppress_log = true);

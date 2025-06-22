@@ -41,7 +41,14 @@ int main(int argc, char** argv)
 		return -1;
 	}
 	
+	auto start = std::chrono::high_resolution_clock::now();
+
 	Image denoisedImage = tv_denoise_gradient_descent(context, queue, program, image, 0.1f);
+
+	auto end = std::chrono::high_resolution_clock::now();
+
+	std::chrono::duration<float> elapsed = end - start;
+	std::cout << "GPU_Denoising took: " << elapsed.count() << " seconds" << std::endl;
 
 	cv::Mat displayImage = denoisedImage.toMat();
 

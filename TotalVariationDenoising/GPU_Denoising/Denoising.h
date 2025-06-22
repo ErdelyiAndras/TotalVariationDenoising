@@ -97,5 +97,5 @@ void update_img(
 
 Image tv_denoise_gradient_descent(
 	cl::Context& context, cl::CommandQueue& queue, cl::Program& program,
-	const Image& input, float strength, float step_size = 1e-2f, float tol = 3.2e-3f
+	const Image& input, float strength, float step_size = 1e-2f, float tol = 3.2e-3f, bool suppress_log = true
 );
