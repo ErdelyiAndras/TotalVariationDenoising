@@ -3,6 +3,8 @@
 #include "Denoising.h"
 #include "../Image/Image.h"
 
+#include <fstream>
+
 template <>
 cl::Kernel init_sum_kernel<int>(cl::Program& program) {
 	return cl::Kernel(program, "sum_int");
@@ -98,12 +100,27 @@ float tv_norm_and_grad(
 
 	tv_norm_mtx_and_dx_dy_mtx(context, queue, program, image, tv_norm_mtx, dx_mtx, dy_mtx, eps);
 	float tv_norm = sum<float>(context, queue, program, tv_norm_mtx, img_size);
+	/*float tv_norm = 0.0f;
+	for (int i = 0; i < img_size; ++i) {
+		tv_norm += tv_norm_mtx[i];
+	}*/
 
 	grad_from_dx_dy_mtxs(context, queue, program, dx_mtx, dy_mtx, grad, image.getRows(), image.getCols());
 
 	delete[] tv_norm_mtx;
 	delete[] dx_mtx;
 	delete[] dy_mtx;
+
+	std::cout << "\tTV_Norm: " << tv_norm << std::endl;
+
+	/*std::ofstream out("tv_norm_and_grad-grad-gpu.txt");
+	for (int i = 0; i < image.getRows(); ++i) {
+		for (int j = 0; j < image.getCols(); ++j) {
+			out << grad[i * image.getCols() + j] << ' ';
+		}
+		out << std::endl;
+	}
+	out.close();*/
 
 	return tv_norm;
 }
@@ -156,8 +173,23 @@ float l2_norm_and_grad(
 	l2_norm_mtx_and_grad(context, queue, program, img, orig, l2_norm_mtx, grad);
 
 	float l2_norm = sum<float>(context, queue, program, l2_norm_mtx, img_size);
+	/*float l2_norm = 0.0f;
+	for (int i = 0; i < img_size; ++i) {
+		l2_norm += l2_norm_mtx[i];
+	}*/
 
 	delete[] l2_norm_mtx;
+
+	std::cout << "\tL2_Norm: " << 0.5 * l2_norm << std::endl;
+
+	/*std::ofstream out("l2_norm_and_grad-grad-gpu.txt");
+	for (int i = 0; i < img.getRows(); ++i) {
+		for (int j = 0; j < img.getCols(); ++j) {
+			out << grad[i * img.getCols() + j] << ' ';
+		}
+		out << std::endl;
+	}
+	out.close();*/
 
 	return l2_norm;
 }
@@ -204,13 +236,24 @@ float eval_loss_and_grad(
 	delete[] tv_grad;
 	delete[] l2_grad;
 	
+	std::cout << "\tCombined loss: " << strength * tv_norm + l2_norm << std::endl;
+
+	/*std::ofstream out("eval_loss_and_grad-grad-gpu.txt");
+	for (int i = 0; i < img.getRows(); ++i) {
+		for (int j = 0; j < img.getCols(); ++j) {
+			out << grad[i * img.getCols() + j] << ' ';
+		}
+		out << std::endl;
+	}
+	out.close();*/
+
 	return strength * tv_norm + l2_norm;
 }
 
 
 void eval_momentum(
 	cl::Context& context, cl::CommandQueue& queue, cl::Program& program,
-	float* momentum, const float* grad, float strength, int img_size
+	float* momentum, const float* grad, float momentum_beta, int img_size
 ) {
 	cl::Kernel momentum_kernel(program, "eval_momentum");
 
@@ -224,7 +267,7 @@ void eval_momentum(
 
 	momentum_kernel.setArg(0, momentum_buffer);
 	momentum_kernel.setArg(1, grad_buffer);
-	momentum_kernel.setArg(2, strength);
+	momentum_kernel.setArg(2, momentum_beta);
 
 	queue.enqueueNDRangeKernel(momentum_kernel, cl::NullRange, img_size, cl::NullRange);
 
@@ -289,8 +332,52 @@ Image tv_denoise_gradient_descent(
 			break;
 		}
 
-		eval_momentum(context, queue, program, momentum, grad, strength, img_size);
+		eval_momentum(context, queue, program, momentum, grad, momentum_beta, img_size);
 		update_img(context, queue, program, img.data(), momentum, img_size, step, momentum_beta, counter);
+		/*for (int i = 0; i < img.getRows(); ++i) {
+			for (int j = 0; j < img.getCols(); ++j) {
+				momentum[i * img.getCols() + j] *= momentum_beta;
+				momentum[i * img.getCols() + j] += grad[i * img.getCols() + j] * (1.0f - momentum_beta);
+				img(i, j) -= step / (1.0f - static_cast<float>(std::pow(momentum_beta, counter))) * momentum[i * img.getCols() + j];
+			}
+		}*/
+
+
+		std::cout << "\tLoss smoothed: " << loss_smoothed << std::endl;
+		std::cout << "\tLoss smothed debiased: " << loss_smoothed_debiased << std::endl;
+
+		/*std::ofstream out("tv_denoise_gradient_descent-momentum-gpu.txt");
+		for (int i = 0; i < img.getRows(); ++i) {
+			for (int j = 0; j < img.getCols(); ++j) {
+				out << momentum[i * img.getCols() + j] << ' ';
+			}
+			out << std::endl;
+		}
+		out.close();
+
+		std::ofstream out2("tv_denoise_gradient_descent-img-gpu.txt");
+		for (int i = 0; i < img.getRows(); ++i) {
+			for (int j = 0; j < img.getCols(); ++j) {
+				out2 << img(i, j) << ' ';
+			}
+			out2 << std::endl;
+		}
+		out2.close();*/
+		
+		/*if (counter == 1) {
+			break;
+		}*/
+
+		/*if (counter == 50) {
+			std::ofstream out2("tv_denoise_gradient_descent-img-step50-gpu.txt");
+			for (int i = 0; i < img.getRows(); ++i) {
+				for (int j = 0; j < img.getCols(); ++j) {
+					out2 << img(i, j) << ' ';
+				}
+				out2 << std::endl;
+			}
+			out2.close();
+		}*/
 
 		++counter;
 	}

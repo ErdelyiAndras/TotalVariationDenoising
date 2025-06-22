@@ -4,6 +4,8 @@
 #include "Denoising.h"
 #include "../Image/Image.h"
 
+#include <fstream>
+
 float tv_norm_and_grad(const Image& img, Image& grad, float eps) {
     const int rows = img.getRows();
     const int cols = img.getCols();
@@ -26,6 +28,17 @@ float tv_norm_and_grad(const Image& img, Image& grad, float eps) {
         }
     }
 
+    std::cout << "\tTV_Norm: " << tv_norm << std::endl;
+
+    /*std::ofstream out("tv_norm_and_grad-grad-cpu.txt");
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            out << grad(i, j) << ' ';
+        }
+        out << std::endl;
+    }
+    out.close();*/
+
     return tv_norm;
 }
 
@@ -42,6 +55,18 @@ float l2_norm_and_grad(const Image& img, const Image& orig, Image& grad) {
             l2_norm += diff * diff;
         }
     }
+
+    std::cout << "\tL2_Norm: " << 0.5 * l2_norm << std::endl;
+
+    /*std::ofstream out("l2_norm_and_grad-grad-cpu.txt");
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            out << grad(i, j) << ' ';
+        }
+        out << std::endl;
+    }
+    out.close();*/
+
     return 0.5f * l2_norm;
 }
 
@@ -61,6 +86,17 @@ float eval_loss_and_grad(const Image& img, const Image& orig, float strength, Im
     for (int i = 0; i < rows; ++i)
         for (int j = 0; j < cols; ++j)
             grad(i, j) += l2_grad(i, j);
+
+    std::cout << "\tCombined loss: " << strength * tv_norm + l2_norm << std::endl;
+
+    /*std::ofstream out("eval_loss_and_grad-grad-cpu.txt");
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            out << grad(i, j) << ' ';
+        }
+        out << std::endl;
+    }
+    out.close();*/
 
     // Compute the combined weighted loss
     return strength * tv_norm + l2_norm;
@@ -86,7 +122,7 @@ Image tv_denoise_gradient_descent(const Image& input, float strength, float step
         float loss = eval_loss_and_grad(img, orig_img, strength, grad);
 
         std::cout << "Iteration: " << counter << ", Loss: " << loss << std::endl;
-
+        
         // Smooth the loss using exponential moving average
         // Smoothed loss is needed for more stable convergence
         loss_smoothed = loss_smoothed * loss_smoothing_beta + loss * (1.0f - loss_smoothing_beta);
@@ -106,6 +142,42 @@ Image tv_denoise_gradient_descent(const Image& input, float strength, float step
                 img(i, j) -= step / (1.0f - static_cast<float>(std::pow(momentum_beta, counter))) * momentum(i, j);
             }
         }
+
+        std::cout << "\tLoss smoothed: " << loss_smoothed << std::endl;
+        std::cout << "\tLoss smothed debiased: " << loss_smoothed_debiased << std::endl;
+
+        /*std::ofstream out("tv_denoise_gradient_descent-momentum-cpu.txt");
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                out << momentum(i, j) << ' ';
+            }
+            out << std::endl;
+        }
+        out.close();
+
+        std::ofstream out2("tv_denoise_gradient_descent-img-cpu.txt");
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                out2 << img(i, j) << ' ';
+            }
+            out2 << std::endl;
+        }
+        out2.close();*/
+
+        /*if (counter == 1) {
+            break;
+        }*/
+
+        /*if (counter == 50) {
+            std::ofstream out2("tv_denoise_gradient_descent-img-step50-gpu.txt");
+            for (int i = 0; i < img.getRows(); ++i) {
+                for (int j = 0; j < img.getCols(); ++j) {
+                    out2 << img(i, j) << ' ';
+                }
+                out2 << std::endl;
+            }
+            out2.close();
+        }*/
 
         ++counter;
     }
