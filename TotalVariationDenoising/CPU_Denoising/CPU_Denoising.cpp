@@ -6,36 +6,39 @@
 #include "Denoising.h"
 
 int main(int argc, char** argv) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <image_path>" << std::endl;
+    if (argc != 3) {
+        std::cerr << "Usage: " << argv[0] << " <input_image_path> <output_image_path>" << std::endl;
         return -1;
     }
 
-    Image image(argv[1]);
+    try {
+        Image image(argv[1]);
 
-    auto start = std::chrono::high_resolution_clock::now();
+        auto start = std::chrono::high_resolution_clock::now();
 
-    Image denoisedImage = tv_denoise_gradient_descent(image, 0.1f);
+        Image denoisedImage = tv_denoise_gradient_descent(image, 0.1f);
 
-    auto end = std::chrono::high_resolution_clock::now();
+        auto end = std::chrono::high_resolution_clock::now();
 
-    std::chrono::duration<float> elapsed = end - start;
-    std::cout << "CPU_Denoising took: " << elapsed.count() << " seconds" << std::endl;
+        std::chrono::duration<float> elapsed = end - start;
+        std::cout << "CPU_Denoising took: " << elapsed.count() << " seconds" << std::endl;
 
-    cv::Mat displayImage = denoisedImage.toMat();
+        cv::Mat displayImage = denoisedImage.toMat();
 
-    cv::imshow("Denoised", displayImage);
-    cv::waitKey(0);
+        cv::imshow("Denoised", displayImage);
+        cv::waitKey(0);
 
-    std::string path = argv[1];
-    size_t last_dot = path.find_last_of('.');
-    size_t last_slash = path.find_last_of("/\\");
-    if (last_dot == std::string::npos || (last_slash != std::string::npos && last_dot < last_slash)) {
-        path = path + "-denoised-cpu";
+        std::string path = argv[2];
+        cv::imwrite(path, displayImage);
     }
-    path = path.substr(0, last_dot) + "-denoised-cpu" + path.substr(last_dot);
-
-    cv::imwrite(path, displayImage);
+    catch (const std::exception& e) {
+        std::cerr << "Exception: " << e.what() << std::endl;
+        return -1;
+    }
+    catch (...) {
+        std::cout << "Other exception" << std::endl;
+        return -1;
+    }
 
     return 0;
 }
