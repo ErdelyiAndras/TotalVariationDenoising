@@ -148,7 +148,7 @@ Image tv_denoise_gradient_descent(const Image& input, float strength, float step
         }
 
         std::cout << "\tLoss smoothed: " << loss_smoothed << std::endl;
-        std::cout << "\tLoss smothed debiased: " << loss_smoothed_debiased << std::endl;
+        std::cout << "\tLoss smothed debiased: " << loss_smoothed_debiased << std::endl << std::endl;
 
         /*std::ofstream out("tv_denoise_gradient_descent-momentum-cpu.txt");
         for (int i = 0; i < rows; ++i) {

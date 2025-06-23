@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 
 		auto start = std::chrono::high_resolution_clock::now();
 
-		Image denoisedImage = tv_denoise_gradient_descent(context, queue, program, image, strength, step_size, tol);
+		Image denoisedImage = tv_denoise_gradient_descent(context, queue, program, image, strength, step_size, tol, false);
 
 		auto end = std::chrono::high_resolution_clock::now();
 

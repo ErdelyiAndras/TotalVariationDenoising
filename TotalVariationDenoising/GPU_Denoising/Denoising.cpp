@@ -348,7 +348,7 @@ Image tv_denoise_gradient_descent(
 
 
 		std::cout << "\tLoss smoothed: " << loss_smoothed << std::endl;
-		std::cout << "\tLoss smothed debiased: " << loss_smoothed_debiased << std::endl;
+		std::cout << "\tLoss smothed debiased: " << loss_smoothed_debiased << std::endl << std::endl;
 
 		/*std::ofstream out("tv_denoise_gradient_descent-momentum-gpu.txt");
 		for (int i = 0; i < img.getRows(); ++i) {
