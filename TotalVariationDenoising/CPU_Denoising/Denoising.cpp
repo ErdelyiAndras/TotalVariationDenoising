@@ -102,7 +102,7 @@ float eval_loss_and_grad(const Image& img, const Image& orig, float strength, Im
     return strength * tv_norm + l2_norm;
 }
 
-Image tv_denoise_gradient_descent(const Image& input, float strength, float step_size, float tol) {
+Image tv_denoise_gradient_descent(const Image& input, float strength, float step_size, float tol, bool suppress_log) {
     const int rows = input.getRows();
     const int cols = input.getCols();
 
@@ -121,8 +121,10 @@ Image tv_denoise_gradient_descent(const Image& input, float strength, float step
         Image grad(rows, cols);
         float loss = eval_loss_and_grad(img, orig_img, strength, grad);
 
-        std::cout << "Iteration: " << counter << ", Loss: " << loss << std::endl;
-        
+        if (!suppress_log) {
+            std::cout << "Iteration: " << counter << ", Loss: " << loss << std::endl;
+        }
+
         // Smooth the loss using exponential moving average
         // Smoothed loss is needed for more stable convergence
         loss_smoothed = loss_smoothed * loss_smoothing_beta + loss * (1.0f - loss_smoothing_beta);
@@ -130,7 +132,9 @@ Image tv_denoise_gradient_descent(const Image& input, float strength, float step
         // Debias the smoothed loss to correct the bias introduced by the zero initialization
         float loss_smoothed_debiased = loss_smoothed / (1.0f - static_cast<float>(std::pow(loss_smoothing_beta, counter)));
         if (counter > 1 && loss_smoothed_debiased / loss < 1.0f + tol) {
-            std::cout << "Converged after " << counter << " iterations with loss: " << loss_smoothed_debiased << std::endl;
+            if (!suppress_log) {
+                std::cout << "Converged after " << counter << " iterations with loss: " << loss_smoothed_debiased << std::endl;
+            }
             break;
         }
 
