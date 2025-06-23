@@ -7,10 +7,11 @@
 #include "../Image/Image.h"
 #include "Denoising.h"
 
-int main(int argc, char** argv)
-{
-	if (argc != 3) {
-		std::cerr << "Usage: " << argv[0] << " <input_image_path> <output_image_path>" << std::endl;
+int main(int argc, char** argv) {
+	if (argc != 6) {
+		std::cerr << "Usage: " << argv[0] 
+			      << " <input_image_path> <output_image_path> <strength> <step_size> <tol>" 
+			      << std::endl;
 		return -1;
 	}
 
@@ -42,9 +43,13 @@ int main(int argc, char** argv)
 			return -1;
 		}
 
+		float strength = std::stof(argv[3]);
+		float step_size = std::stof(argv[4]);
+		float tol = std::stof(argv[5]);
+
 		auto start = std::chrono::high_resolution_clock::now();
 
-		Image denoisedImage = tv_denoise_gradient_descent(context, queue, program, image, 0.1f);
+		Image denoisedImage = tv_denoise_gradient_descent(context, queue, program, image, strength, step_size, tol);
 
 		auto end = std::chrono::high_resolution_clock::now();
 
