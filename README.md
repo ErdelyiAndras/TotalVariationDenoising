@@ -50,5 +50,5 @@ After building, you can run the denoising executable from the command line. Exam
 Use the GUI to select the input image, set the output path, adjust parameters, and select the denoising executable. You can launch the GUI to interactively select images and parameters:
 
 ```sh
-py .\denoise_gui\denoise_gui.py
+py .\denoise_gui\main.py
 ```
