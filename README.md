@@ -27,11 +27,11 @@ You can use the noisy image generator script or use your own noisy images:
 py .\noisy_image_generator\main.py input.jpg noisy-img.jpg --noise_std 25
 ```
 
-### 2. Create environment variable for denoising kernel
+### 2. Create Environment Variable for Denoising Kernel
 
 Create an environment variable called `DENOISING_KERNEL_PATH` and set its value to the absolute path of the `.\TotalVariationDenoising\GPU_Denoising\Denoising.cl` file. This ensures that you can run the project from anywhere.
 
-### 3. Build the denoising executable from the C++ file.
+### 3. Build the Denoising Executable from the C++ File.
 
 The simplest way to build the project is using Visual Studio.
 
