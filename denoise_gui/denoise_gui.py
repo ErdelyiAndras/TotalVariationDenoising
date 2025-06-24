@@ -137,7 +137,6 @@ class DenoiseGUI(tk.Tk):
             return
         
         try:
-            # Pass the parameters as command-line arguments
             result = subprocess.run(
                 [exe_path, self.image_path, output_img, strength, step, tol, "true"],
                 capture_output = True, text = True, check = True
@@ -152,7 +151,6 @@ class DenoiseGUI(tk.Tk):
 
             self.image = ImageTk.PhotoImage(out_img)
             self.img_label.config(image = self.image)
-            # messagebox.showinfo("Success", "Denoising completed successfully.")
         except subprocess.CalledProcessError as e:
             print("Error:", e.stderr)
             messagebox.showerror("Error", f"Failed to run denoising executable:\n{e.stderr}")
