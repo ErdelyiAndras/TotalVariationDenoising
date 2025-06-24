@@ -6,11 +6,16 @@
 #include "Denoising.h"
 
 int main(int argc, char** argv) {
-    if (argc != 6) {
+    if (argc != 7) {
         std::cerr << "Usage: " << argv[0]
-            << " <input_image_path> <output_image_path> <strength> <step_size> <tol>"
+            << " <input_image_path> <output_image_path> <strength> <step_size> <tol> <suppress_log>"
             << std::endl;
         return -1;
+    }
+    std::string suppress_log_str = argv[6];
+    bool suppress_log = true;
+    if (suppress_log_str == "false" || suppress_log_str == "0") {
+        suppress_log = false;
     }
 
     try {
@@ -22,7 +27,7 @@ int main(int argc, char** argv) {
 
         auto start = std::chrono::high_resolution_clock::now();
 
-        Image denoisedImage = tv_denoise_gradient_descent(image, strength, step_size, tol, false);
+        Image denoisedImage = tv_denoise_gradient_descent(image, strength, step_size, tol, suppress_log);
 
         auto end = std::chrono::high_resolution_clock::now();
 
@@ -30,9 +35,11 @@ int main(int argc, char** argv) {
         std::cout << "CPU_Denoising took: " << elapsed.count() << " seconds" << std::endl;
 
         cv::Mat displayImage = denoisedImage.toMat();
-
-        cv::imshow("Denoised", displayImage);
-        cv::waitKey(0);
+        
+        if (!suppress_log) {
+            cv::imshow("Denoised", displayImage);
+            cv::waitKey(0);
+        }
 
         std::string path = argv[2];
         cv::imwrite(path, displayImage);
